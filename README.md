@@ -1,7 +1,7 @@
 # 🌄 Efficient Test-Time Model Adaptation without Forgetting
 
 This is the official project repository for [Efficient Test-Time Model Adaptation without Forgetting 🔗](https://arxiv.org/abs/2204.02610) by
-Shuaicheng Niu, Jiaxiang Wu, Yifan Zhang, Yaofo Chen, Shijian Zheng, Peilin Zhao and Mingkui Tan (ICML 2022).
+Shuaicheng Niu, Jiaxiang Wu, Yifan Zhang, Yaofo Chen, Shijian Zheng, Peilin Zhao and Mingkui Tan **(ICML 2022)**.
 
 🌄 EATA conducts model learning at test time to adapt a pre-trained model to test data that has distributional shifts ☀️ 🌧 ❄️, such as corruptions, simulation-to-real discrepancies, and other differences between training and testing data.
 - 1️⃣: EATA conducts selective/sample-adaptative optimization, i.e., only perform backward propagation for reliable and non-redundant test samples, which improves adaptaion efficiency and performance simtaneously.
@@ -24,7 +24,7 @@ This repository contains code for evaluation on ImageNet and [ImageNet-C 🔗](h
 
 - Step 1: Download [ImageNet-C 🔗](https://github.com/hendrycks/robustness) dataset from [here 🔗](https://zenodo.org/record/2235448#.YpCSLxNBxAc). 
 
-- Step 2: Put IamgeNet-C at "--data_corruption" and put ImageNet **test/val** set at  "--data".
+- Step 2: Put IamgeNet-C at "--data_corruption" and put ImageNet **test/val set**  at  "--data".
 
 
 
