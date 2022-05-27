@@ -107,27 +107,14 @@ if __name__ == '__main__':
         torch.manual_seed(args.seed)
 
     subnet = Resnet.__dict__[args.arch](pretrained=True)
-    # subnet = Resnet.__dict__[args.arch](pretrained=False)
-    # if args.arch.endswith("50"):
-    #     init = torch.load("/apdcephfs/private_huberyniu/cli_pretrained_models/resnet50-19c8e357.pth")
-    # elif args.arch.endswith("101"):
-    #     init = torch.load("/apdcephfs/private_huberyniu/cli_pretrained_models/resnet101-5d3b4d8f.pth")
-    # elif args.arch.endswith("152"):
-    #     init = torch.load("/apdcephfs/private_huberyniu/cli_pretrained_models/resnet152-b121ed2d.pth")
-    # else:
-    #     assert False, NotImplementedError
 
     subnet.load_state_dict(init)
     subnet = subnet.cuda()
 
-    if not os.path.exists(args.output): # and args.local_rank == 0
+    if not os.path.exists(args.output):
         os.makedirs(args.output, exist_ok=True)
 
-    debug = False
-    if debug:
-        logger = get_logger(name="project", output_directory="/apdcephfs/private_huberyniu/etta_exps/rebuttal/debug", log_name=time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())+"-log.txt", debug=False)
-    else:
-        logger = get_logger(name="project", output_directory=args.output, log_name=time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())+"-small_testset.txt", debug=False)
+    logger = get_logger(name="project", output_directory=args.output, log_name=time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())+"-log.txt", debug=False)
     
     common_corruptions = ['gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_blur', 'glass_blur', 'motion_blur', 'zoom_blur', 'snow', 'frost', 'fog', 'brightness', 'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression']
     logger.info(args)
