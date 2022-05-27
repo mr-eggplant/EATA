@@ -42,11 +42,10 @@ adapt_model = eata.EATA(model, optimizer, fishers, e_margin, d_margin)
 
 outputs = adapt_model(inputs)  # now it infers and adapts!
 
-optimization
 ```
 Notes: 
 - fishers are pre-calculated (see main.py) for preventing forgetting, 
-- e_margin and d_margin are two parameters for selective (sample-adaptive) 
+- e_margin and d_margin are two parameters for selective (sample-adaptive) optimization.
 
 ## Example: Adapting a pre-trained ResNet-50 model on ImageNet-C (Corruption).
 
