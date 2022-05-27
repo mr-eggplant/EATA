@@ -30,17 +30,6 @@ def validate(val_loader, model, criterion, args, mode='eval'):
         [batch_time, top1, top5],
         prefix='Test: ')
 
-    # switch to evaluate mode
-    # if mode == 'eval':
-    #     model.eval()
-    # elif mode == 'train':
-    #     model.train()
-    # else:
-    #     assert False, "not support"
-
-    # print(model.model.training)
-    # print(model.training)
-
     with torch.no_grad():
         end = time.time()
         for i, dl in enumerate(val_loader):
@@ -117,15 +106,16 @@ if __name__ == '__main__':
         np.random.seed(args.seed)
         torch.manual_seed(args.seed)
 
-    subnet = Resnet.__dict__[args.arch](pretrained=False)
-    if args.arch.endswith("50"):
-        init = torch.load("/apdcephfs/private_huberyniu/cli_pretrained_models/resnet50-19c8e357.pth")
-    elif args.arch.endswith("101"):
-        init = torch.load("/apdcephfs/private_huberyniu/cli_pretrained_models/resnet101-5d3b4d8f.pth")
-    elif args.arch.endswith("152"):
-        init = torch.load("/apdcephfs/private_huberyniu/cli_pretrained_models/resnet152-b121ed2d.pth")
-    else:
-        assert False, NotImplementedError
+    subnet = Resnet.__dict__[args.arch](pretrained=True)
+    # subnet = Resnet.__dict__[args.arch](pretrained=False)
+    # if args.arch.endswith("50"):
+    #     init = torch.load("/apdcephfs/private_huberyniu/cli_pretrained_models/resnet50-19c8e357.pth")
+    # elif args.arch.endswith("101"):
+    #     init = torch.load("/apdcephfs/private_huberyniu/cli_pretrained_models/resnet101-5d3b4d8f.pth")
+    # elif args.arch.endswith("152"):
+    #     init = torch.load("/apdcephfs/private_huberyniu/cli_pretrained_models/resnet152-b121ed2d.pth")
+    # else:
+    #     assert False, NotImplementedError
 
     subnet.load_state_dict(init)
     subnet = subnet.cuda()
@@ -140,7 +130,6 @@ if __name__ == '__main__':
         logger = get_logger(name="project", output_directory=args.output, log_name=time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime())+"-small_testset.txt", debug=False)
     
     common_corruptions = ['gaussian_noise', 'shot_noise', 'impulse_noise', 'defocus_blur', 'glass_blur', 'motion_blur', 'zoom_blur', 'snow', 'frost', 'fog', 'brightness', 'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression']
-    # common_corruptions = ['gaussian_noise']
     logger.info(args)
 
     if args.exp_type == 'continual':
@@ -220,145 +209,3 @@ if __name__ == '__main__':
         if args.algorithm in ['eata', 'eta']:
             logger.info(f"num of reliable samples is {adapt_model.num_samples_update_1}, num of reliable+non-redundant samples is {adapt_model.num_samples_update_2}")
             adapt_model.num_samples_update_1, adapt_model.num_samples_update_2 = 0, 0
-
-
-    """
-    tent_acc1s = []
-    eata_acc1s = []
-    eata_num1s = []
-    eata_num2s = []
-    eta_acc1s = []
-    eta_num1s = []
-    eta_num2s = []
-    for data_size in [50000, 256, 512, 1024, 2048, 4096, 10000]:
-        logger.info(f"dataset size is {data_size}")
-        for corrupt in common_corruptions:
-            args.corruption = corrupt
-            logger.info(args.corruption)
-
-            val_dataset, val_loader = prepare_test_data(args)
-            val_dataset.switch_mode(True, False)
-            val_dataset.set_dataset_size(data_size)
-
-            validate_ori = False
-            if validate_ori:
-                # validate the original accuracy
-                top1, top5 = validate(val_loader, subnet, None, args, mode='eval')
-                logger.info(f"With Max Architecture {args.corruption} Original Accuracy: top1: {top1:.5f} and top5: {top5:.5f}")
-
-                assert False
-
-            # tent evaluation
-            subnet = Resnet.__dict__[args.arch](pretrained=False)
-            subnet.load_state_dict(init)
-            subnet = subnet.cuda()
-
-            subnet = tent.configure_model(subnet)
-            params, param_names = tent.collect_params(subnet)
-            optimizer = torch.optim.SGD(params, 0.00025, momentum=0.9)
-            tented_model = tent.Tent(subnet, optimizer)
-
-            for i in range(1):
-                top1, top5 = validate(val_loader, tented_model, None, args, mode='eval')
-                logger.info(f"With Max Architecture {args.corruption} After Tent: Original Accuracy: top1: {top1:.5f} and top5: {top5:.5f}")
-            tent_acc1s.append(top1.item())
-
-            # ETA evaluation
-            subnet = Resnet.__dict__[args.arch](pretrained=False)
-            subnet.load_state_dict(init)
-            subnet = subnet.cuda()
-            
-            import etent as mytent
-
-            subnet = mytent.configure_model(subnet)
-            params, param_names = mytent.collect_params(subnet)
-
-            optimizer = torch.optim.SGD(params, 0.00025, momentum=0.9)
-            tented_model = mytent.Tent(subnet, optimizer, e_margin=math.log(1000)*0.40)
-            logger.info("tened model is: " + "mytent.Tent(subnet, optimizer, e_margin=math.log(1000)*0.40)")
-
-            top1, top5 = validate(val_loader, tented_model, None, args, mode='eval')
-            logger.info(f"With Max Architecture {args.corruption} After ETA: Original Accuracy: top1: {top1:.5f} and top5: {top5:.5f}")
-            logger.info(f"num filters are {tented_model.num_samples_update_1}, {tented_model.num_samples_update_2}")
-
-            eta_acc1s.append(top1.item())
-            eta_num1s.append(tented_model.num_samples_update_1)
-            eta_num2s.append(tented_model.num_samples_update_2)
-
-
-            # EATA evaluation
-            subnet = Resnet.__dict__[args.arch](pretrained=False)
-            subnet.load_state_dict(init)
-            subnet = subnet.cuda()
-
-            fisher_type = 'avg' # avg or sum
-            args.fisher_alpha = 2000.  # 2500.0
-            args.fisher_size = 2000
-
-            # compute fisher informatrix
-            args.corruption = 'original'
-            fisher_dataset, fisher_loader = prepare_test_data(args)
-            fisher_dataset.set_dataset_size(args.fisher_size)
-            fisher_dataset.switch_mode(True, False)
-
-            import etent as mytent
-
-            # print logs
-            logger.info("fisher alpha is "+str(args.fisher_alpha))
-            logger.info("fisher type is "+fisher_type)
-            logger.info("fisher data are: "+args.corruption)
-            logger.info("fisher size is: "+str(args.fisher_size))
-            logger.info("corrpution type is "+args.corruption)
-
-            subnet = mytent.configure_model(subnet)
-            params, param_names = mytent.collect_params(subnet)
-            ewc_optimizer = torch.optim.SGD(params, 0.001)
-            fishers = {}
-            train_loss_fn = nn.CrossEntropyLoss().cuda()
-            for iter_, (images, targets) in enumerate(fisher_loader, start=1):      
-                if args.gpu is not None:
-                    images = images.cuda(args.gpu, non_blocking=True)
-                if torch.cuda.is_available():
-                    targets = targets.cuda(args.gpu, non_blocking=True)
-                outputs = subnet(images)
-                _, targets = outputs.max(1)
-                loss = train_loss_fn(outputs, targets)
-                loss.backward()
-                for name, param in subnet.named_parameters():
-                    if param.grad is not None:
-                        if iter_ > 1:
-                            fisher = param.grad.data.clone().detach() ** 2 + fishers[name][0]
-                        else:
-                            fisher = param.grad.data.clone().detach() ** 2
-                        if fisher_type == 'sum':
-                            if fisher.norm() > args.fisher_clip_by_norm:
-                                fisher = fisher / fisher.norm() * args.fisher_clip_by_norm
-                        elif fisher_type == 'avg':
-                            if iter_ == len(fisher_loader):
-                                fisher = fisher / iter_
-                        else:
-                            assert False, NotImplementedError
-                        fishers.update({name: [fisher, param.data.clone().detach()]})
-                ewc_optimizer.zero_grad()
-            logger.info("compute fisher matrices finished")
-            del ewc_optimizer
-
-            optimizer = torch.optim.SGD(params, 0.00025, momentum=0.9)
-            tented_model = mytent.Tent(subnet, optimizer, fishers, args.fisher_alpha, e_margin=math.log(1000)*0.40)
-            logger.info("e_margin is: " + "tented_model = mytent.Tent(subnet, optimizer, fishers, args.fisher_alpha, e_margin=math.log(1000)*0.40)")
-
-            top1, top5 = validate(val_loader, tented_model, None, args, mode='eval')
-            logger.info(f"With Max Architecture {args.corruption} After EATA: Original Accuracy: top1: {top1:.5f} and top5: {top5:.5f}")
-            logger.info(f"num filters are {tented_model.num_samples_update_1}, {tented_model.num_samples_update_2}")
-
-            eata_acc1s.append(top1.item())
-            eata_num1s.append(tented_model.num_samples_update_1)
-            eata_num2s.append(tented_model.num_samples_update_2)
-        logger.info(f"tent_acc1s are {tent_acc1s}")
-        logger.info(f"eata_acc1s are {eata_acc1s}")
-        logger.info(f"eta_acc1s are {eta_acc1s}")
-        logger.info(f"eata_num1s are {eata_num1s}")
-        logger.info(f"eata_num2s are {eata_num2s}")
-        logger.info(f"eta_num1s are {eta_num1s}")
-        logger.info(f"eta_num2s are {eta_num2s}")
-    """
