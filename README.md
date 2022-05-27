@@ -71,7 +71,7 @@ python3 main.py --data /path/to/imagenet --data_corruption /path/to/imagenet-c -
 
 Here, we report the results on ImageNet-C, severity level = 5, with ResNet-50.
 
-- Corruption accuracy (ETA/EATA achieves higher corruption accuracy but use fewer backward passes (compared to TTT, Tent), thereby more efficient):
+- **Corruption accuracy** (ETA/EATA achieves higher corruption accuracy but use fewer backward passes (compared to TTT, Tent), thereby more efficient):
 
 | Method             | Gauss. | Shot | Impul. | Defoc. | Glass | Motion | Zoom | Snow | Frost | Fog  | Brit. | Contr. | Elastic | Pixel | JPEG | Avg. #Forwards | Avg. #Backwards |
 |--------------------|--------|------|--------|--------|-------|--------|------|------|-------|------|-------|--------|---------|-------|------|----------------|-----------------|
@@ -86,7 +86,7 @@ Here, we report the results on ImageNet-C, severity level = 5, with ResNet-50.
 <!-- |   +BN              | 84.5   | 83.9 | 83.7   | 80.0   | 80.0  | 71.5   | 60.0 | 65.2 | 65.0  | 51.5 | 34.1  | 75.9   | 54.2    | 49.3  | 58.9 | 50,000         | 0               | -->
 <!-- |   +MEMO            | 92.5   | 91.3 | 91.0   | 80.3   | 87.0  | 79.3   | 72.4 | 74.7 | 71.2  | 67.9 | 39.0  | 89.0   | 76.2    | 67.0  | 62.5 | 50,000✖️65     | 50,000✖️64      | -->
 
-- Clean accuracy (testing the model's source accuracy on clean/original imagenet test set). EATA improves model's corruption acc. and maintains the source acc., while Tent can not.  
+- **Clean accuracy** (testing the model's source accuracy on clean/original imagenet test set). EATA improves model's corruption acc. and maintains the source acc., while Tent can not.  
 
 <p align="center">
 <img src="figures/forgetting_results.png" alt="forgetting_results" width="100%" align=center />
