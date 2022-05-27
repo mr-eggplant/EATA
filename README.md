@@ -24,7 +24,7 @@ This repository contains code for evaluation on ImageNet and [ImageNet-C 🔗](h
 
 - Step 1: Download [ImageNet-C 🔗](https://github.com/hendrycks/robustness) dataset from [here 🔗](https://zenodo.org/record/2235448#.YpCSLxNBxAc). 
 
-- Step 2: Put IamgeNet-C at "--data_corruption" and put ImageNet at  "--data".
+- Step 2: Put IamgeNet-C at "--data_corruption" and put ImageNet **test/val** set at  "--data".
 
 
 
