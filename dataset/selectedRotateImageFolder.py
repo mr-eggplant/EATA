@@ -194,6 +194,6 @@ def prepare_test_data(args, use_transforms=True):
         
     if not hasattr(args, 'workers'):
         args.workers = 1
-    teloader = torch.utils.data.DataLoader(teset, batch_size=64, shuffle=args.if_shuffle, 
+    teloader = torch.utils.data.DataLoader(teset, batch_size=args.batch_size, shuffle=args.if_shuffle, 
                                                     num_workers=args.workers, pin_memory=True)
     return teset, teloader

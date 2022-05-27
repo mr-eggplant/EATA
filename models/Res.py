@@ -207,8 +207,6 @@ class ResNet(nn.Module):
         x = self.layer1(x)
         x = self.layer2(x)
         x = self.layer3(x)
-        # if return_feature:
-        #     feature = x
         x = self.layer4(x)
         x = self.avgpool(x)
         x = x.reshape(x.size(0), -1)

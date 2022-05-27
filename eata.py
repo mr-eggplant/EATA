@@ -18,7 +18,7 @@ class EATA(nn.Module):
     """EATA adapts a model by entropy minimization during testing.
     Once EATAed, a model adapts itself by updating on every forward.
     """
-    def __init__(self, model, optimizer, fishers=None, fisher_alpha=50.0, steps=1, episodic=False, e_margin=math.log(1000)/2-1, d_margin=0.05): # -2; math.log(1000)/2-1
+    def __init__(self, model, optimizer, fishers=None, fisher_alpha=2000.0, steps=1, episodic=False, e_margin=math.log(1000)/2-1, d_margin=0.05):
         super().__init__()
         self.model = model
         self.optimizer = optimizer
@@ -46,7 +46,7 @@ class EATA(nn.Module):
             self.reset()
         if self.steps > 0:
             for _ in range(self.steps):
-                outputs, num_counts_2, num_counts_1, updated_probs = forward_and_adapt_count_cosine_filter_ewc(x, self.model, self.optimizer, self.fishers, self.e_margin, self.current_model_probs, fisher_alpha=self.fisher_alpha, num_samples_update=self.num_samples_update_2, d_margin=self.d_margin)
+                outputs, num_counts_2, num_counts_1, updated_probs = forward_and_adapt_eata(x, self.model, self.optimizer, self.fishers, self.e_margin, self.current_model_probs, fisher_alpha=self.fisher_alpha, num_samples_update=self.num_samples_update_2, d_margin=self.d_margin)
                 self.num_samples_update_2 += num_counts_2
                 self.num_samples_update_1 += num_counts_1
                 self.reset_model_probs(updated_probs)
@@ -79,9 +79,14 @@ def softmax_entropy(x: torch.Tensor) -> torch.Tensor:
 
 
 @torch.enable_grad()  # ensure grads in possible no grad context for testing
-def forward_and_adapt_count_cosine_filter_ewc(x, model, optimizer, fishers, e_margin, current_model_probs, fisher_alpha=50.0, d_margin=0.05, scale_factor=2, num_samples_update=0):
+def forward_and_adapt_eata(x, model, optimizer, fishers, e_margin, current_model_probs, fisher_alpha=50.0, d_margin=0.05, scale_factor=2, num_samples_update=0):
     """Forward and adapt model on batch of data.
     Measure entropy of the model prediction, take gradients, and update params.
+    Return: 
+    1. model outputs; 
+    2. the number of reliable and non-redundant samples; 
+    3. the number of reliable samples;
+    4. the moving average  probability vector over all previous samples
     """
     # forward
     outputs = model(x)
