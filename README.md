@@ -100,7 +100,7 @@ Please see our [PAPER 🔗](https://arxiv.org/abs/2204.02610) for detailed resul
 
 ## Correspondence
 
-📬 Please contact Shuaicheng Niu by niushuaicheng [at] gmail.com
+Please contact Shuaicheng Niu by niushuaicheng [at] gmail.com 📬.
 
 
 ## Citation
