@@ -108,7 +108,7 @@ if __name__ == '__main__':
 
     subnet = Resnet.__dict__[args.arch](pretrained=True)
 
-    subnet.load_state_dict(init)
+    # subnet.load_state_dict(init)
     subnet = subnet.cuda()
 
     if not os.path.exists(args.output):
